@@ -15,14 +15,7 @@ import {
 import { getFirestore, doc, getDocFromCache, getDocFromServer } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
-// Sometimes .firebaseapp.com has QUIC protocol issues in certain environments.
-// Switching to .web.app can sometimes bypass this.
-const config = {
-  ...firebaseConfig,
-  authDomain: firebaseConfig.authDomain.replace('firebaseapp.com', 'web.app')
-};
-
-const app = initializeApp(config);
+const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
@@ -51,6 +44,9 @@ export const loginWithGoogle = async () => {
     
     if (error.code === 'auth/popup-blocked') {
       alert("The login popup was blocked. Please allow popups for this site or open the app in a new tab.");
+    } else if (error.code === 'auth/popup-closed-by-user') {
+      console.warn("User closed the login popup before finishing.");
+      return null;
     } else if (error.message?.includes('ERR_QUIC_PROTOCOL_ERROR')) {
       console.error("QUIC Protocol error detected. This is a network/browser issue. Try: 1. Open in a new tab. 2. Use a different browser. 3. Disable QUIC in chrome://flags.");
     }
