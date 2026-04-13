@@ -1,11 +1,44 @@
-import { Eye, EyeOff, Plus, ArrowUpRight, ArrowDownLeft } from "lucide-react";
+import { Eye, EyeOff, Plus, ArrowUpRight, ArrowDownLeft, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion } from "motion/react";
+import { useAuth } from "./AuthContext";
+import { addMoney, makeTransfer } from "../lib/transactions";
 
 export function BalanceCard() {
   const [showBalance, setShowBalance] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { user, userData } = useAuth();
+
+  const handleAddMoney = async () => {
+    if (!user) return;
+    setIsProcessing(true);
+    try {
+      // For demo purposes, we add a random amount between 1000 and 5000
+      const amount = Math.floor(Math.random() * 4000) + 1000;
+      await addMoney(user.uid, amount);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleTransfer = async () => {
+    if (!user || !userData || userData.balance < 500) return;
+    setIsProcessing(true);
+    try {
+      // For demo purposes, we transfer 500
+      await makeTransfer(user.uid, 500, "Sarah");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const balance = userData?.balance ?? 0;
 
   return (
     <motion.div
@@ -33,19 +66,29 @@ export function BalanceCard() {
           <div className="flex items-baseline gap-1 mb-6">
             <span className="text-2xl font-bold">₦</span>
             <span className="text-4xl font-bold tracking-tight">
-              {showBalance ? "124,500.00" : "****.**"}
+              {showBalance ? balance.toLocaleString(undefined, { minimumFractionDigits: 2 }) : "****.**"}
             </span>
           </div>
           <div className="grid grid-cols-3 gap-4">
             <div className="flex flex-col items-center gap-2">
-              <Button size="icon" className="rounded-full bg-white text-primary hover:bg-white/90 h-12 w-12 shadow-lg">
-                <Plus className="h-6 w-6" />
+              <Button 
+                size="icon" 
+                disabled={isProcessing}
+                onClick={handleAddMoney}
+                className="rounded-full bg-white text-primary hover:bg-white/90 h-12 w-12 shadow-lg"
+              >
+                {isProcessing ? <Loader2 className="h-6 w-6 animate-spin" /> : <Plus className="h-6 w-6" />}
               </Button>
               <span className="text-xs font-medium">Add Money</span>
             </div>
             <div className="flex flex-col items-center gap-2">
-              <Button size="icon" className="rounded-full bg-white text-primary hover:bg-white/90 h-12 w-12 shadow-lg">
-                <ArrowUpRight className="h-6 w-6" />
+              <Button 
+                size="icon" 
+                disabled={isProcessing || balance < 500}
+                onClick={handleTransfer}
+                className="rounded-full bg-white text-primary hover:bg-white/90 h-12 w-12 shadow-lg disabled:opacity-50"
+              >
+                {isProcessing ? <Loader2 className="h-6 w-6 animate-spin" /> : <ArrowUpRight className="h-6 w-6" />}
               </Button>
               <span className="text-xs font-medium">Transfer</span>
             </div>

@@ -3,9 +3,18 @@ import { useTheme } from "./ThemeContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "motion/react";
+import { logout } from "../lib/firebase";
 
 export function SettingsView() {
   const { theme, setTheme } = useTheme();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   const themeOptions = [
     { id: "light", label: "Light", icon: Sun },
@@ -58,7 +67,11 @@ export function SettingsView() {
         </Card>
       </div>
 
-      <Button variant="destructive" className="w-full h-14 rounded-2xl gap-2 font-bold">
+      <Button 
+        variant="destructive" 
+        className="w-full h-14 rounded-2xl gap-2 font-bold"
+        onClick={handleLogout}
+      >
         <LogOut className="h-5 w-5" />
         Log Out
       </Button>

@@ -1,0 +1,69 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Fields:
+    //   - uid: string (required)
+    //   - displayName: string
+    //   - email: string
+    //   - balance: number (required)
+    //   - kycLevel: number
+    //   - createdAt: timestamp
+    //
+    // Collection: transactions
+    // Fields:
+    //   - uid: string (required) - Owner UID
+    //   - type: string (required) - 'credit' | 'debit'
+    //   - category: string
+    //   - amount: number (required)
+    //   - description: string
+    //   - timestamp: timestamp (required)
+    //   - status: string (required) - 'success' | 'pending' | 'failed'
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.uid;
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'balance']) &&
+             data.uid == request.auth.uid &&
+             data.balance is number && data.balance >= 0;
+    }
+
+    function isValidTransaction(data) {
+      return data.keys().hasAll(['uid', 'type', 'amount', 'timestamp', 'status']) &&
+             data.uid == request.auth.uid &&
+             data.type in ['credit', 'debit'] &&
+             data.amount is number && data.amount > 0 &&
+             data.status in ['success', 'pending', 'failed'];
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data);
+    }
+
+    match /transactions/{transactionId} {
+      allow read: if isAuthenticated() && (resource == null || resource.data.uid == request.auth.uid);
+      allow create: if isAuthenticated() && isValidTransaction(request.resource.data);
+      allow update: if false; // Transactions are immutable
+      allow delete: if false;
+    }
+  }
+}

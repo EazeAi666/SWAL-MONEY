@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and financial summary",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Unique user ID" },
+        "displayName": { "type": "string", "description": "User's full name" },
+        "email": { "type": "string", "description": "User's email address" },
+        "balance": { "type": "number", "description": "Current wallet balance in NGN" },
+        "kycLevel": { "type": "number", "description": "KYC verification level (0, 1, 2, 3)" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Account creation timestamp" }
+      },
+      "required": ["uid", "balance"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Financial transaction record",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Owner of the transaction" },
+        "type": { "type": "string", "enum": ["credit", "debit"], "description": "Transaction type" },
+        "category": { "type": "string", "description": "Category (e.g., transfer, airtime, deposit)" },
+        "amount": { "type": "number", "description": "Transaction amount" },
+        "description": { "type": "string", "description": "Transaction details" },
+        "timestamp": { "type": "string", "format": "date-time", "description": "When the transaction occurred" },
+        "status": { "type": "string", "enum": ["success", "pending", "failed"], "description": "Transaction status" }
+      },
+      "required": ["uid", "type", "amount", "timestamp", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile and balance"
+    },
+    "/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "History of all transactions"
+    }
+  }
+}
