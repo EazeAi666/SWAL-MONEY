@@ -1,14 +1,17 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, onSnapshot, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, db } from '../lib/firebase';
+import { auth, db, handleRedirectResult } from '../lib/firebase';
 
 interface UserData {
   uid: string;
   balance: number;
   displayName: string | null;
   email: string | null;
+  phone?: string;
   kycLevel: number;
+  kycStatus?: string;
+  deviceId?: string;
 }
 
 interface AuthContextType {
@@ -27,6 +30,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthReady, setIsAuthReady] = useState(false);
 
   useEffect(() => {
+    // Handle redirect result on mount (for mobile/iframe compatibility)
+    handleRedirectResult().catch(err => console.error("Redirect handler error:", err));
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       setIsAuthReady(true);

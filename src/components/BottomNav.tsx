@@ -1,13 +1,12 @@
-import { Home, CreditCard, PieChart, Settings, Wallet } from "lucide-react";
+import { Home, Gift, PieChart, CreditCard, User } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
 
 const navItems = [
   { icon: Home, label: "Home", id: "home" },
-  { icon: Wallet, label: "Cards", id: "cards" },
-  { icon: CreditCard, label: "Payments", id: "payments" },
-  { icon: PieChart, label: "Stats", id: "stats" },
-  { icon: Settings, label: "Settings", id: "settings" },
+  { icon: Gift, label: "Rewards", id: "rewards" },
+  { icon: PieChart, label: "Finance", id: "finance" },
+  { icon: CreditCard, label: "Cards", id: "cards" },
+  { icon: User, label: "Me", id: "settings" },
 ];
 
 export function BottomNav({ active, onViewChange }: { active: string; onViewChange: (id: string) => void }) {

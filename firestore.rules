@@ -24,6 +24,16 @@ service cloud.firestore {
     //   - timestamp: timestamp (required)
     //   - status: string (required) - 'success' | 'pending' | 'failed'
     //
+    // Collection: cards
+    // Fields:
+    //   - uid: string (required)
+    //   - cardNumber: string
+    //   - expiry: string
+    //   - cvv: string
+    //   - type: string - 'virtual' | 'physical'
+    //   - status: string - 'active' | 'blocked'
+    //   - balance: number
+    //
     // ===============================================================
 
     // Helper Functions
@@ -40,8 +50,9 @@ service cloud.firestore {
     }
 
     function isValidUser(data) {
-      return data.keys().hasAll(['uid', 'balance']) &&
+      return data.keys().hasAll(['uid', 'balance', 'phone']) &&
              data.uid == request.auth.uid &&
+             data.phone.matches("^234\\d{10}$") &&
              data.balance is number && data.balance >= 0;
     }
 
@@ -51,6 +62,17 @@ service cloud.firestore {
              data.type in ['credit', 'debit'] &&
              data.amount is number && data.amount > 0 &&
              data.status in ['success', 'pending', 'failed'];
+    }
+
+    function isValidSavings(data) {
+      return data.keys().hasAll(['uid', 'balance', 'interestRate']) &&
+             data.uid == request.auth.uid &&
+             data.balance is number && data.balance >= 0;
+    }
+
+    function isValidCard(data) {
+      return data.keys().hasAll(['uid', 'cardNumber', 'type', 'status']) &&
+             data.uid == request.auth.uid;
     }
 
     match /users/{userId} {
@@ -63,6 +85,18 @@ service cloud.firestore {
       allow read: if isAuthenticated() && (resource == null || resource.data.uid == request.auth.uid);
       allow create: if isAuthenticated() && isValidTransaction(request.resource.data);
       allow update: if false; // Transactions are immutable
+      allow delete: if false;
+    }
+
+    match /savings/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && isValidSavings(request.resource.data);
+    }
+
+    match /cards/{cardId} {
+      allow read: if isAuthenticated() && (resource == null || resource.data.uid == request.auth.uid);
+      allow create: if isAuthenticated() && isValidCard(request.resource.data);
+      allow update: if isAuthenticated() && (resource.data.uid == request.auth.uid) && isValidCard(request.resource.data);
       allow delete: if false;
     }
   }

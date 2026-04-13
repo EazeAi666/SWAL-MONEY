@@ -6,7 +6,7 @@ import { motion } from "motion/react";
 import { useAuth } from "./AuthContext";
 import { addMoney, makeTransfer } from "../lib/transactions";
 
-export function BalanceCard() {
+export function BalanceCard({ onTransferClick }: { onTransferClick?: () => void }) {
   const [showBalance, setShowBalance] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const { user, userData } = useAuth();
@@ -26,6 +26,10 @@ export function BalanceCard() {
   };
 
   const handleTransfer = async () => {
+    if (onTransferClick) {
+      onTransferClick();
+      return;
+    }
     if (!user || !userData || userData.balance < 500) return;
     setIsProcessing(true);
     try {

@@ -3,6 +3,10 @@ import {
   getAuth, 
   GoogleAuthProvider, 
   signInWithPopup, 
+  signInWithRedirect,
+  getRedirectResult,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
   signOut, 
   browserPopupRedirectResolver,
   setPersistence,
@@ -53,6 +57,28 @@ export const loginWithGoogle = async () => {
     throw error;
   }
 };
+
+export const loginWithRedirect = async () => {
+  try {
+    await signInWithRedirect(auth, googleProvider);
+  } catch (error) {
+    console.error("Redirect login error:", error);
+    throw error;
+  }
+};
+
+export const handleRedirectResult = async () => {
+  try {
+    const result = await getRedirectResult(auth);
+    return result?.user;
+  } catch (error) {
+    console.error("Error handling redirect result:", error);
+    throw error;
+  }
+};
+
+export const signUpWithEmail = (email: string, pass: string) => createUserWithEmailAndPassword(auth, email, pass);
+export const loginWithEmail = (email: string, pass: string) => signInWithEmailAndPassword(auth, email, pass);
 
 export const logout = () => signOut(auth);
 
